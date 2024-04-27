@@ -2,6 +2,7 @@ import numpy as np
 import networkx as nx
 import csv
 from tqdm import tqdm
+import scipy.linalg as la
 from scipy.stats import spearmanr
 
 
@@ -52,7 +53,29 @@ def load_network(path):
     return network, shape
 
 
-def layer_plex_rank(network, shape, a, s, gamma, delta=0.85, error = 1e-6):
+def calculate_fiedler_value(network, shape):
+    A = np.diagonal(network)
+    fiedler_values = []
+    for layer in range(shape[0]):
+        # Degree matrix D for layer i
+        D = np.diag(A[layer].sum(axis=1))
+
+        # Handle zero degrees properly: compute D^(-1/2)
+        D_inv_sqrt = np.zeros_like(D)
+        non_zero_degrees = D.diagonal() > 0
+        D_inv_sqrt[non_zero_degrees, non_zero_degrees] = 1 / np.sqrt(D.diagonal()[non_zero_degrees])
+
+        # Compute the normalized Laplacian matrix for layer i
+        L_norm = np.eye(shape[1]) - np.dot(np.dot(D_inv_sqrt, A[layer]), D_inv_sqrt)
+
+        # Fiedler value: the second smallest eigenvalue
+        eigvals = la.eigvalsh(L_norm)
+        fiedler = sorted(eigvals)[1]
+        fiedler_values.append(fiedler)
+    return fiedler_values
+
+
+def layer_plex_rank(network, shape, fiedler_values, a, s, gamma, eta=0.5, delta=0.85, error=1e-6):
     """Calculates node centralities and layer influence in a multiplex network.
 
     Args:
@@ -62,6 +85,8 @@ def layer_plex_rank(network, shape, a, s, gamma, delta=0.85, error = 1e-6):
             A tuple with two elements indicating the structure of the network, where:
                 - g (shape[0]) represents the number of layers.
                 - n (shape[1]) represents the number of nodes per layer.
+        fiedler_values: numpy.ndarray
+            An array of Fiedler values for each layer in the network.
         a: int
             Determines the influence of a layer based on its weight (W[layer]). Values:
                 - 1: Influence is proportional to W[layer].
@@ -131,7 +156,7 @@ def layer_plex_rank(network, shape, a, s, gamma, delta=0.85, error = 1e-6):
         X_not_zero = np.copy(X)
         X_not_zero[X_not_zero == 0] = 1
         for layer in range(g):
-            Z[layer] = (W[layer] ** a) * (np.sum(B[layer] * (X_not_zero ** (s * gamma))) ** s)
+            Z[layer] = (eta * abs(fiedler_values[layer])) + (1 - eta) * (W[layer] ** a) * (np.sum(B[layer] * (X_not_zero ** (s * gamma))) ** s)
         Z /= np.sum(Z)
 
         G = np.zeros((n, n), dtype=float)
@@ -301,8 +326,10 @@ def loocv(files_list, origin_network, origin_shape, method, a=1, s=1, gamma=1, s
         sub_network, sub_shape = load_network(path_sub_dataset)
         match method:
             case 'LayerPlexRank':
-                X, Z = layer_plex_rank(origin_network, origin_shape, a, s, gamma)
-                sub_X, sub_Z = layer_plex_rank(sub_network, sub_shape, a, s, gamma)
+                origin_fiedler_values = calculate_fiedler_value(origin_network, origin_shape)
+                sub_fiedler_values = calculate_fiedler_value(sub_network, sub_shape)
+                X, Z = layer_plex_rank(origin_network, origin_shape, origin_fiedler_values, a, s, gamma)
+                sub_X, sub_Z = layer_plex_rank(sub_network, sub_shape, sub_fiedler_values, a, s, gamma)
             case 'betweenness':
                 X, Z = benchmark_centrality(origin_network, origin_shape, 'betweenness')
                 sub_X, sub_Z = benchmark_centrality(sub_network, sub_shape, 'betweenness')
@@ -340,15 +367,31 @@ def loocv(files_list, origin_network, origin_shape, method, a=1, s=1, gamma=1, s
 
 
 def parameter_sensitivity(network, shape, node_ids):
+    """Calculates the sensitivity of LayerPlexRank to different parameter values.
+
+    Args:
+        network: numpy.ndarray
+            A (g * (n * n)) dimensional ndarray representing g layers of supra adjacency matrices.
+        shape: tuple
+            A tuple with two elements indicating the structure of the network, where:
+                - g (shape[0]) represents the number of layers in the network.
+                - n (shape[1]) represents the number of nodes per layer.
+        node_ids: list
+            A list of node IDs to be used for the sensitivity analysis.
+    Returns:
+        results: list
+            A list of dictionaries containing the results of the sensitivity analysis.
+    """
     results = []
     s_values = [1]
     a_values = [1]
     gamma_values = np.arange(0, 3.1, 0.1)
+    fiedler_values = calculate_fiedler_value(network, shape)
 
     for s in s_values:
         for a in a_values:
             for gamma in tqdm(gamma_values):
-                X, Z = layer_plex_rank(network, shape, a, s, gamma)
+                X, Z = layer_plex_rank(network, shape, fiedler_values, a, s, gamma)
                 rank = generate_rank_by_centrality(X)
                 for node_id in node_ids:
                     results.append({

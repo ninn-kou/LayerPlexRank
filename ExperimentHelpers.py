@@ -113,3 +113,23 @@ def plot_and_save_diff_percentage_lineplot(data, colours_group, xlabel, ylabel, 
         plt.savefig(save_path, format='eps', bbox_inches='tight')
 
     plt.show()
+
+def plot_and_save_para_sensitivity(data_list, xlabel, ylabel, title, save_path=None):
+
+    sens_data = pd.DataFrame(data_list)
+
+    sns.set_theme(style='white', font='Helvetica', font_scale=1.3)
+    plt.figure(figsize=(12, 8))
+    plt.gca().invert_yaxis()
+
+    sns.lineplot(data=sens_data, x='gamma', y='rank', hue='node_id', palette='tab10', legend=False)
+
+    plt.xlabel(xlabel, fontsize=18)
+    plt.ylabel(ylabel, fontsize=18)
+    plt.title(title, fontsize=20)
+
+    if save_path:
+        delete_existing_file(save_path)
+        plt.savefig(save_path, format='eps', bbox_inches='tight')
+
+    plt.show()
