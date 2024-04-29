@@ -17,8 +17,8 @@ def delete_existing_file(file_path):
         os.remove(file_path)
 
 
-def plot_and_save_correlation_heatmaps(corr_values_nodes, corr_p_nodes, corr_values_layers, corr_p_layers,
-                                       algo_names, nodes_title, layers_title, suptitle, save_path=None):
+def plot_and_save_correlation_heatmaps(corr_values_nodes, corr_p_nodes, corr_values_layers, corr_p_layers, algo_names,
+                                       nodes_title, layers_title, suptitle, short_title, direction, save_path=None):
     """Plot two side-by-side heatmaps for correlation matrices. Optionally, check if the file located at save_path existing, delete it if yes, and save the new figure.
 
     Args:
@@ -34,35 +34,58 @@ def plot_and_save_correlation_heatmaps(corr_values_nodes, corr_p_nodes, corr_val
             Main title for the entire figure.
         save_path: str
             Path to save the figure. If None, the figure is not saved. Deletes existing file if present.
+        direction: str, optional
+            The direction of the subplots. Must be either 'horizontal' or 'vertical'.
     """
 
     corr_matrix_nodes = pd.DataFrame(corr_values_nodes, columns=algo_names, index=algo_names)
     corr_matrix_layers = pd.DataFrame(corr_values_layers, columns=algo_names, index=algo_names)
 
-    sns.set_theme(style='white', font='Helvetica', font_scale=1.3)
+    sns.set_theme(style='white', font='Helvetica', font_scale=1.4)
 
     # Create figure with subplots
-    plt.figure(figsize=(16, 8))
+    match direction:
+        case 'horizontal':
+            plt.figure(figsize=(16, 8))
+            ax1 = plt.subplot(1, 2, 1)
+            rotate = 45
+        case 'vertical':
+            plt.figure(figsize=(8, 16))
+            ax1 = plt.subplot(2, 1, 1)
+            rotate = 0
+        case _:
+            raise ValueError("Invalid direction. Must be 'horizontal' or 'vertical'.")
 
-    # First heatmap
-    ax1 = plt.subplot(1, 2, 1)
-    heatmap1 = sns.heatmap(corr_matrix_nodes, annot=corr_p_nodes, fmt='.3f', cmap='Greens', linewidths=.5,
-                           cbar_kws={'shrink': .8, 'format': FormatStrFormatter('%.2f')})
-    heatmap1.set_xticklabels(heatmap1.get_xticklabels(), rotation=45)
-    heatmap1.set_yticklabels(heatmap1.get_yticklabels(), rotation=45)
-    ax1.set_title(nodes_title, fontsize=18, pad=12)
+    heatmap1 = sns.heatmap(corr_matrix_nodes, annot=corr_p_nodes, fmt='.2f', cmap='Greens', linewidths=.5,
+                           cbar_kws={'shrink': .7, 'format': FormatStrFormatter('%.2f')}, square=True)
+    heatmap1.set_xticklabels(heatmap1.get_xticklabels(), rotation=rotate)
+    heatmap1.set_yticklabels(heatmap1.get_yticklabels(), rotation=rotate)
+    ax1.set_title(nodes_title, fontsize=20, pad=12)
 
-    # Second heatmap
-    ax2 = plt.subplot(1, 2, 2)
-    heatmap2 = sns.heatmap(corr_matrix_layers, annot=corr_p_layers, fmt='.3f', cmap='Blues', linewidths=.5,
-                           cbar_kws={'shrink': .8, 'format': FormatStrFormatter('%.2f')})
-    heatmap2.set_xticklabels(heatmap2.get_xticklabels(), rotation=45)
-    heatmap2.set_yticklabels(heatmap2.get_yticklabels(), rotation=45)
-    ax2.set_title(layers_title, fontsize=18, pad=12)
+    match direction:
+        case 'horizontal':
+            ax2 = plt.subplot(1, 2, 2)
+        case 'vertical':
+            ax2 = plt.subplot(2, 1, 2)
+        case _:
+            raise ValueError("Invalid direction. Must be 'horizontal' or 'vertical'.")
 
-    plt.suptitle(suptitle, fontsize=20, y=1)
+    heatmap2 = sns.heatmap(corr_matrix_layers, annot=corr_p_layers, fmt='.2f', cmap='Blues', linewidths=.5,
+                           cbar_kws={'shrink': .7, 'format': FormatStrFormatter('%.2f')}, square=True)
+    heatmap2.set_xticklabels(heatmap2.get_xticklabels(), rotation=rotate)
+    heatmap2.set_yticklabels(heatmap2.get_yticklabels(), rotation=rotate)
+    ax2.set_title(layers_title, fontsize=20, pad=12)
 
-    plt.tight_layout(rect=[0, 0, 1, 1])
+    match direction:
+        case 'horizontal':
+            plt.suptitle(suptitle, fontsize=20, y=0.93)
+            plt.tight_layout(rect=[0, 0, 1, 1])
+        case 'vertical':
+            plt.suptitle(short_title, fontsize=22, y=0.92)
+            plt.subplots_adjust(wspace=0, hspace=0)
+        case _:
+            raise ValueError("Invalid direction. Must be 'horizontal' or 'vertical'.")
+
     if save_path:
         delete_existing_file(save_path)
         plt.savefig(save_path, format='eps', bbox_inches='tight')
@@ -90,7 +113,7 @@ def plot_and_save_diff_percentage_lineplot(data, colours_group, xlabel, ylabel, 
     data_melted = data.melt(id_vars=['x-axis'], var_name='Method', value_name='Difference Percentage')
 
     sns.set_theme(style='white', font='Helvetica', font_scale=1.3)
-    plt.figure(figsize=(12, 8))
+    plt.figure(figsize=(12, 6))
 
     sns.lineplot(data=data_melted, x='x-axis', y='Difference Percentage', hue='Method',
                  palette=colours_group, linewidth=2)
@@ -100,13 +123,13 @@ def plot_and_save_diff_percentage_lineplot(data, colours_group, xlabel, ylabel, 
 
     plt.axhline(y=0, color='k', linestyle='--')
     plt.axvline(x=0, color='k', linestyle='--')
-    plt.axvline(x=450, color='k', linestyle='--')
+    plt.axvline(x=len(data['x-axis']), color='k', linestyle='--')
 
-    plt.xlabel(xlabel, fontsize=18)
-    plt.ylabel(ylabel, fontsize=18)
-    plt.title(title, fontsize=20)
+    plt.xlabel(xlabel, fontsize=20)
+    plt.ylabel(ylabel, fontsize=20)
+    plt.title(title, fontsize=22)
     plt.grid(True)
-    plt.legend(fontsize='18', loc=(0.1, 0.5))
+    plt.legend(fontsize='20', loc=(0.1, 0.4))
 
     if save_path:
         delete_existing_file(save_path)
@@ -114,7 +137,22 @@ def plot_and_save_diff_percentage_lineplot(data, colours_group, xlabel, ylabel, 
 
     plt.show()
 
+
 def plot_and_save_para_sensitivity(data_list, xlabel, ylabel, title, save_path=None):
+    """Plot a line graph for sensitivity analysis across multiple parameters, with options to save it.
+
+    Args:
+        data_list: list
+            A list of dictionaries where each dictionary represents a different method's data points.
+        xlabel: str
+            Label for the x-axis, which represents the parameter being varied.
+        ylabel: str
+            Label for the y-axis, which shows the rank of the method.
+        title: str
+            The title of the graph, describing the data being visualized.
+        save_path: str, optional
+            The file path where the plot image will be saved. If not provided, the plot is not saved. If provided, checks for existing file at the path and deletes it before saving the new plot.
+    """
 
     sens_data = pd.DataFrame(data_list)
 
@@ -124,9 +162,9 @@ def plot_and_save_para_sensitivity(data_list, xlabel, ylabel, title, save_path=N
 
     sns.lineplot(data=sens_data, x='gamma', y='rank', hue='node_id', palette='tab10', legend=False)
 
-    plt.xlabel(xlabel, fontsize=18)
-    plt.ylabel(ylabel, fontsize=18)
-    plt.title(title, fontsize=20)
+    plt.xlabel(xlabel, fontsize=20)
+    plt.ylabel(ylabel, fontsize=20)
+    plt.title(title, fontsize=22)
 
     if save_path:
         delete_existing_file(save_path)
