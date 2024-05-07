@@ -113,7 +113,7 @@ def plot_and_save_diff_percentage_lineplot(data, colours_group, xlabel, ylabel, 
     data_melted = data.melt(id_vars=['x-axis'], var_name='Method', value_name='Difference Percentage')
 
     sns.set_theme(style='white', font='Helvetica', font_scale=1.3)
-    plt.figure(figsize=(12, 6))
+    plt.figure(figsize=(12, 8))
 
     sns.lineplot(data=data_melted, x='x-axis', y='Difference Percentage', hue='Method',
                  palette=colours_group, linewidth=2)
