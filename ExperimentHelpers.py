@@ -88,7 +88,7 @@ def plot_and_save_correlation_heatmaps(corr_values_nodes, corr_p_nodes, corr_val
 
     if save_path:
         delete_existing_file(save_path)
-        plt.savefig(save_path, format='eps', bbox_inches='tight')
+        plt.savefig(save_path, format='pdf', bbox_inches='tight')
 
     plt.show()
 
@@ -133,7 +133,7 @@ def plot_and_save_diff_percentage_lineplot(data, colours_group, xlabel, ylabel, 
 
     if save_path:
         delete_existing_file(save_path)
-        plt.savefig(save_path, format='eps', bbox_inches='tight')
+        plt.savefig(save_path, format='pdf', bbox_inches='tight')
 
     plt.show()
 
@@ -168,6 +168,6 @@ def plot_and_save_para_sensitivity(data_list, xlabel, ylabel, title, save_path=N
 
     if save_path:
         delete_existing_file(save_path)
-        plt.savefig(save_path, format='eps', bbox_inches='tight')
+        plt.savefig(save_path, format='pdf', bbox_inches='tight')
 
     plt.show()
