@@ -1,5 +1,12 @@
 # LayerPlexRank
 
+<table><thead>
+  <tr>
+    <td><a href="https://dl.acm.org/doi/10.1145/3627673.3679950">ACM DL</a></td>
+    <td><a href="https://arxiv.org/abs/2405.05576">arXiv</a></td>
+  </tr></thead>
+</table>
+
 ```
 @inproceedings{10.1145/3627673.3679950,
   author = {Ren, Hao and Jiang, Jiaojiao},
