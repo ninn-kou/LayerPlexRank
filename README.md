@@ -4,10 +4,9 @@
 
 **33rd ACM International Conference on Information and Knowledge Management (CIKM) 2024**
 
-[Hao Ren](https://ninn-kou.github.io/), [Jiaojiao Jiang](https://www.unsw.edu.au/staff/jiaojiao-jiang)
-School of Computer Science and Engineering, University of New South Wales
+[Hao Ren](https://ninn-kou.github.io/), [Jiaojiao Jiang](https://www.unsw.edu.au/staff/jiaojiao-jiang) <br> School of Computer Science and Engineering, University of New South Wales <br> [hao.ren@unsw.edu.au](mailto:hao.ren@unsw.edu.au), [jiaojiao.jiang@unsw.edu.au](mailto:jiaojiao.jiang@unsw.edu.au)
 
-[![arXiv](https://img.shields.io/badge/arXiv-2405.05576-b31b1b.svg)](https://arxiv.org/abs/2405.05576) [![ACM DL](https://img.shields.io/badge/ACM%20DL-10.1145/3627673.3679950-1d1d1b.svg)](https://dl.acm.org/doi/10.1145/3627673.3679950)
+[![arXiv](https://img.shields.io/badge/arXiv-2405.05576-b31b1b.svg?logo=arxiv)](https://arxiv.org/abs/2405.05576) [![ACM DL](https://img.shields.io/badge/ACM_DL-10.1145/3627673.3679950-0085ca.svg?logo=acm)](https://dl.acm.org/doi/10.1145/3627673.3679950) [![GitHub](https://img.shields.io/badge/GitHub-LayerPlexRank-181717.svg?logo=github)](https://github.com/ninn-kou/LayerPlexRank)
 
 </div>
 
